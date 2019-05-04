@@ -35,11 +35,18 @@ The environment is considered solved, when the average (over 100 episodes) of th
 
     (_For AWS_) If you'd like to train the agent on AWS (and have not [enabled a virtual screen](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Training-on-Amazon-Web-Service.md)), then please use [this link](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P3/Tennis/Tennis_Linux_NoVis.zip) to obtain the "headless" version of the environment.  You will **not** be able to watch the agent without enabling a virtual screen, but you will be able to train the agent.  (_To watch the agent, you should follow the instructions to [enable a virtual screen](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Training-on-Amazon-Web-Service.md), and then download the environment for the **Linux** operating system above._)
 
-2. Place the file in the DRLND GitHub repository, in the `p3_collab-compet/` folder, and unzip (or decompress) the file. 
+
+2. Place the file in the GitHub repository, in the `collaboration-tennis/` folder, and unzip (or decompress) the file.
+3. Install the requirements from the python folder using `pip install ./python`
+
+Since most people might run into errors for torch 0.4.0, i removed it from the requirements and torch needs to be installed separately.
 
 ### Instructions
 
 Follow the instructions in `Tennis.ipynb` to get started with training your own agent!  
+
+
+You can have a look at the results over [here](https://github.com/snknitin/collaboration-tennis/blob/master/report.md)
 
 ### (Optional) Challenge: Crawler Environment
 
