@@ -1,4 +1,4 @@
-from ddpg_agent import ReplayBuffer,OUNoise
+from ddpg_agent import Agent,ReplayBuffer,OUNoise
 from model import Actor, Critic
 import numpy as np
 import random
@@ -42,10 +42,12 @@ class MADDPG():
         #super(MADDPG, self).__init__()
         self.num_agents = num_agents
         self.seed = random.seed(random_seed)
-        self.state_size = state_size
         self.action_size = action_size
+        self.state_size = state_size * self.num_agents # since 24 is just for one
+        self.agent_idx = np.arange(self.num_agents)
         # 2 agents
         # Actor Network (w/ Target Network)
+        self.act_size = action_size * self.num_agents
         self.actor_local = Actor(state_size, action_size,hidden_sizes, random_seed).to(device)
         self.actor_target = Actor(state_size, action_size,hidden_sizes, random_seed).to(device)
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=LR_ACTOR)
