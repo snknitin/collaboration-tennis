@@ -22,20 +22,27 @@ DROPOUT =0.2
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class Agent():
-    """Interacts with and learns from the environment."""
+    """
+    Each actor takes a state input for a single agent while the critic takes
+    a concatentation of the states and actions from all agents.
+    """
     
-    def __init__(self, state_size, action_size,random_seed,hidden_sizes=HIDDEN_LAYERS):
+    def __init__(self,id, state_size, action_size,random_seed,num_agents,hidden_sizes=HIDDEN_LAYERS):
         """Initialize an Agent object.
         
         Params
         ======
+            id (str) : Player 1 or player 2 (possibly 0 and 1)
             state_size (int): dimension of each state
             action_size (int): dimension of each action
             random_seed (int): random seed
         """
+        super(Agent, self).__init__()
+        self.id = id
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(random_seed)
+        self.num_agents = num_agents
 
         # Actor Network (w/ Target Network)
         self.actor_local = Actor(state_size, action_size,hidden_sizes, random_seed).to(device)
@@ -43,8 +50,8 @@ class Agent():
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=LR_ACTOR)
 
         # Critic Network (w/ Target Network)
-        self.critic_local = Critic(state_size, action_size, random_seed,keep_prob=DROPOUT).to(device)
-        self.critic_target = Critic(state_size, action_size, random_seed,keep_prob=DROPOUT).to(device)
+        self.critic_local = Critic(state_size, action_size*num_agents, random_seed,keep_prob=DROPOUT).to(device)
+        self.critic_target = Critic(state_size, action_size*num_agents, random_seed,keep_prob=DROPOUT).to(device)
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
         
         self.hard_copy_weights(self.actor_target, self.actor_local)
@@ -77,7 +84,7 @@ class Agent():
                 self.learn(experiences, GAMMA)
 
 
-    def step20(self, states, actions, rewards, next_states, dones,num_update = 1):
+    def step2(self, states, actions, rewards, next_states, dones,num_update = 1):
         """Save experience in replay memory, and use random sample from buffer to learn."""
         # Save experience / reward
         for state, action, reward, next_state, done in zip(states, actions, rewards, next_states, dones):
@@ -98,6 +105,17 @@ class Agent():
         self.actor_local.eval()
         with torch.no_grad():
             action = self.actor_local(state).cpu().data.numpy()
+        self.actor_local.train()
+        if add_noise:
+            action += self.noise.sample()
+        return np.clip(action, -1, 1)
+
+    def target_act(self, state, add_noise=True):
+        """Returns actions for given state as per current policy."""
+        state = torch.from_numpy(state).float().to(device)
+        self.actor_local.eval()
+        with torch.no_grad():
+            action = self.actor_target(state).cpu().data.numpy()
         self.actor_local.train()
         if add_noise:
             action += self.noise.sample()
@@ -159,10 +177,12 @@ class Agent():
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
+
+
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
 
-    def __init__(self, size, seed, mu=0., theta=0.15, sigma=0.1):
+    def __init__(self, size, seed, mu=0., theta=0.15, sigma=0.2):
         """Initialize parameters and noise process."""
         self.mu = mu * np.ones(size)
         self.theta = theta
