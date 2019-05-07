@@ -53,11 +53,11 @@ class MADDPG(object):
         self.t_step = 0
         self.__name__ = 'MADDPG'
 
-    # def __len__(self):
-    #     return self.num_agents
-    #
-    # def __getitem__(self, key):
-    #     return self.maddpg_agents[key]
+    def __len__(self):
+        return self.num_agents
+
+    def __getitem__(self, key):
+        return self.maddpg_agents[key]
 
     def hard_copy_weights(self, target, source):
         """ copy weights from source to target network (part of initialization)"""
