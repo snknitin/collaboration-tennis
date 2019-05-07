@@ -12,7 +12,7 @@ def hidden_init(layer):
 class Actor(nn.Module):
     """Actor (Policy) Model."""
 
-    def __init__(self, state_size, action_size, seed, fc1_units=128,fc2_units = 32):
+    def __init__(self, state_size, action_size, seed, fc1_units=256,fc2_units = 128):
         """Initialize parameters and build model.
         Params
         ======
@@ -43,8 +43,8 @@ class Actor(nn.Module):
 
     def forward(self, state):
         """Build an actor (policy) network that maps states -> actions."""
-        x = F.relu(self.fc1(state))
-        x = F.relu(self.fc2(x))
+        x = F.leaky_relu(self.fc1(state))
+        x = F.leaky_relu(self.fc2(x))
         # if state.dim() == 1:
         #     state = torch.unsqueeze(state, 0)
         #
@@ -57,7 +57,7 @@ class Actor(nn.Module):
 class Critic(nn.Module):
     """Critic (Value) Model."""
 
-    def __init__(self, state_size, action_size,num_agents, seed, fcs1_units=128, fc2_units=32,keep_prob=0.2):
+    def __init__(self, state_size, action_size,num_agents, seed, fcs1_units=200, fc2_units=100,keep_prob=0.2):
         """Initialize parameters and build model.
         Params
         ======
@@ -74,7 +74,7 @@ class Critic(nn.Module):
         # self.fc2 = nn.Linear(fcs1_units + action_size, fc2_units)
         # self.fc3 = nn.Linear(fc2_units, fc3_units)
         # self.out = nn.Linear(fc3_units, 1)
-
+        self.dropout = nn.Dropout(p=keep_prob)
         self.fcs1 = nn.Linear((state_size + action_size) * num_agents, fcs1_units)
         self.fc2 = nn.Linear(fcs1_units, fc2_units)
         self.fc3 = nn.Linear(fc2_units, 1)
@@ -91,9 +91,9 @@ class Critic(nn.Module):
         """Build a critic (value) network that maps (state, action) pairs -> Q-values."""
         # Random hack to avoid mismatch error
         xs = torch.cat((state, action.float()), dim=1)
-        x = F.relu(self.fcs1(xs))
-        x = F.relu(self.fc2(x))
-        return self.fc3(x)
+        x = F.leaky_relu(self.fcs1(xs))
+        x = F.leaky_relu(self.fc2(x))
+        return self.fc3(self.dropout(x))
         # xs = F.leaky_relu(self.fcs1(state.view(-1, 48)))
         # x = torch.cat((xs, action.view(-1, 4)), dim=1)
         # x = F.leaky_relu(self.fc2(x))
