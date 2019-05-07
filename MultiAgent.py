@@ -13,14 +13,13 @@ from utilities import soft_update, transpose_to_tensor, transpose_list
 import torch
 
 BUFFER_SIZE = int(1e6)  # replay buffer size
-BATCH_SIZE = 256        # minibatch size
-GAMMA = 0.99            # discount factor
+BATCH_SIZE = 512        # minibatch size
+GAMMA = 0.993            # discount factor
 TAU = 1e-3              # for soft update of target parameters
-LR_ACTOR = 2e-3         # learning rate of the actor
-LR_CRITIC = 3e-4        # learning rate of the critic
+LR_ACTOR = 1e-3         # learning rate of the actor
+LR_CRITIC = 1e-4        # learning rate of the critic
 WEIGHT_DECAY = 0        # L2 weight decay
-HIDDEN_LAYERS=(512,256)
-UPDATE_EVERY = 16
+UPDATE_EVERY = 20
 DROPOUT =0.2
 NUM_UPDATES = 2
 NOISE_START = 1.0       # epsilon decay for the noise process added to the actions
