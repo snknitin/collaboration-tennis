@@ -48,7 +48,7 @@ class MADDPG(object):
         # 2 agents
         # Actor Network (w/ Target Network)
         self.replay_buffer = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
-        self.maddpg_agents = [Agent(state_size,action_size,random_seed,num_agents,self) for _ in range(self.num_agents)]
+        self.maddpg_agents = [Agent(state_size, action_size, random_seed, self) for _ in range(self.num_agents)]
         self.noise_weight = NOISE_START
         self.t_step = 0
         self.__name__ = 'MADDPG'

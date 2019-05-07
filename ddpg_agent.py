@@ -28,7 +28,7 @@ class Agent(object):
     a concatentation of the states and actions from all agents.
     """
     
-    def __init__(self,state_size, action_size,random_seed,num_agents,maddpg):
+    def __init__(self,state_size, action_size,random_seed,maddpg):
         """Initialize an Double Agent object.
         
         Params
@@ -40,11 +40,10 @@ class Agent(object):
             maddpg : The multi agent
         """
         #super(Agent, self).__init__()
-        self.id = id
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(random_seed)
-        self.num_agents = num_agents
+        self.num_agents = maddpg.num_agents
         self.__name__ = 'DDPG'
 
         # Actor Network (w/ Target Network)
@@ -53,8 +52,8 @@ class Agent(object):
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=LR_ACTOR)
 
         # Critic Network (w/ Target Network)
-        self.critic_local = Critic(state_size, action_size,num_agents, random_seed,keep_prob=DROPOUT).to(device)
-        self.critic_target = Critic(state_size, action_size,num_agents, random_seed,keep_prob=DROPOUT).to(device)
+        self.critic_local = Critic(state_size, action_size, self.num_agents, random_seed,keep_prob=DROPOUT).to(device)
+        self.critic_target = Critic(state_size, action_size, self.num_agents, random_seed,keep_prob=DROPOUT).to(device)
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
         
         self.hard_copy_weights(self.actor_target, self.actor_local)
