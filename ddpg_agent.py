@@ -137,7 +137,7 @@ class Agent():
         # Get predicted next-state actions and Q values from target models
         # Actions need to be calculated on the states individually and then concatenated
 
-        combined_actions_next = torch.cat([self.actor_target(states),self.actor_target(ext_states)], dim=1).to(device)
+        combined_actions_next = torch.cat((self.actor_target(states),self.actor_target(ext_states)), dim=1).to(device)
         #actions_next = self.actor_target(next_states)
         Q_targets_next = self.critic_target(full_next_states, combined_actions_next)
         # Compute Q targets for current states (y_i)
