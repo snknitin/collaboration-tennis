@@ -1,14 +1,6 @@
-import numpy as np
-import random
-import copy
-from collections import namedtuple, deque
-
-from model import Actor, Critic
 from ddpg_agent import Agent
 from utilities import soft_update, transpose_to_tensor, transpose_list
 import torch
-import torch.nn.functional as F
-import torch.optim as optim
 
 BUFFER_SIZE = int(1e6)  # replay buffer size
 BATCH_SIZE = 512        # minibatch size
