@@ -39,7 +39,7 @@ class Agent():
             random_seed (int): random seed
             maddpg : The multi agent
         """
-        super(Agent, self).__init__()
+        #super(Agent, self).__init__()
         self.id = id
         self.state_size = state_size
         self.action_size = action_size
