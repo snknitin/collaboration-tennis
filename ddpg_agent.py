@@ -13,11 +13,12 @@ BUFFER_SIZE = int(1e6)  # replay buffer size
 BATCH_SIZE = 256        # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
-LR_ACTOR = 1e-4         # learning rate of the actor
-LR_CRITIC = 1e-3        # learning rate of the critic
+LR_ACTOR = 2e-3         # learning rate of the actor
+LR_CRITIC = 1e-4        # learning rate of the critic
 WEIGHT_DECAY = 0        # L2 weight decay
 HIDDEN_LAYERS=(512,256)
-UPDATE_EVERY = 20
+UPDATE_EVERY = 8
+NUM_UPDATES = 2
 DROPOUT =0.2
 NOISE_DECAY = 1e-6      # decay for for subrtaction of noise
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -80,10 +81,11 @@ class Agent(object):
         # Learn every UPDATE_EVERY time steps.
         self.t_step = (self.t_step + 1) % UPDATE_EVERY
         if self.t_step == 0:
-            # Learn, if enough samples are available in memory
-            if len(self.memory) > BATCH_SIZE:
-                experiences = self.memory.sample()
-                self.learn(experiences, GAMMA)
+            for i in range(NUM_UPDATES):
+                # Learn, if enough samples are available in memory
+                if len(self.memory) > BATCH_SIZE:
+                    experiences = self.memory.sample()
+                    self.learn(experiences, GAMMA)
 
 
     # def step2(self, states, actions, rewards, next_states, dones,num_update = 1):
