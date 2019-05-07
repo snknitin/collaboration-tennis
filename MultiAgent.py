@@ -47,24 +47,8 @@ class MADDPG():
         self.agent_idx = np.arange(self.num_agents)
         # 2 agents
         # Actor Network (w/ Target Network)
-        self.act_size = action_size * self.num_agents
-        self.actor_local = Actor(state_size, action_size,hidden_sizes, random_seed).to(device)
-        self.actor_target = Actor(state_size, action_size,hidden_sizes, random_seed).to(device)
-        self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=LR_ACTOR)
-
-        # Critic Network (w/ Target Network)
-        self.critic_local = Critic(state_size*self.num_agents , action_size*self.num_agents , random_seed,keep_prob=DROPOUT).to(device)
-        self.critic_target = Critic(state_size*self.num_agents , action_size*self.num_agents, random_seed,keep_prob=DROPOUT).to(device)
-        self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
-
-        self.hard_copy_weights(self.actor_target, self.actor_local)
-        self.hard_copy_weights(self.critic_target, self.critic_local)
-
-        # Noise process
-        self.noise = OUNoise(action_size, random_seed)
-
-        # Replay memory
-        self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
+        self.replay_buffer = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
+        self.maddpg_agents = [Agent(state_size,action_size,random_seed,num_agents,self) for _ in range(self.num_agents)]
         self.noise_weight = NOISE_START
         self.t_step = 0
 
@@ -74,37 +58,42 @@ class MADDPG():
             target_param.data.copy_(param.data)
 
 
-    def step2(self, states, actions, rewards, next_states, dones, num_updates=1):
+    def step2(self, states, actions, rewards, next_states, dones):
         """Save experience in replay memory, and use random sample from buffer to learn."""
 
-        self.memory.add(states, actions, rewards,next_states, dones)
+        # Split into agent wise tuples for memory
+        experience = zip(self.maddpg_agents, states, actions, rewards, next_states,
+                         dones)
 
+        for i, exp in enumerate(experience):
+            agent, state, action, reward, next_state, done = exp
+        # # Learn every UPDATE_EVERY time steps.
+        # self.t_step = (self.t_step + 1) % UPDATE_EVERY
+        #
+        # if self.t_step == 0:
+        #     # Learn, if enough samples are available in memory
+        #     if len(self.memory) > BATCH_SIZE:
+        #         for _ in range(num_updates):
+        #             experiences = self.memory.sample()
+        #             self.learn(experiences, GAMMA)
+            player = self.agent_idx[self.agent_idx != i] # Choose the opposite player
+            # Record the external player's states and actions separately for replay buffer
+            ext_state = states[player]
+            ext_action = actions[player]
+            ext_next_state = next_states[player]
+            agent.step(state, ext_state, action, ext_action, reward, next_state, ext_next_state, done)
 
-        # Learn every UPDATE_EVERY time steps.
-        self.t_step = (self.t_step + 1) % UPDATE_EVERY
-
-        if self.t_step == 0:
-            # Learn, if enough samples are available in memory
-            if len(self.memory) > BATCH_SIZE:
-                for _ in range(num_updates):
-                    experiences = self.memory.sample()
-                    self.learn(experiences, GAMMA)
-
-    def act(self, state, add_noise=True):
+    def act(self, states, add_noise=True):
         """Returns actions for given state as per current policy."""
-        state = torch.from_numpy(state).float().to(device)
-        self.actor_local.eval()
-        with torch.no_grad():
-            action = self.actor_local(state).cpu().data.numpy()
-        self.actor_local.train()
-
-        if add_noise:
-            action += self.noise.sample()
-            #self.noise_weight -= NOISE_DECAY
-        return np.clip(action, -1, 1)
+        act_dim = np.zeros([self.num_agents, self.action_size])
+        for player, agent in enumerate(self.maddpg_agents):
+            act_dim[player,:] = agent.act(states[player],self.noise_weight,add_noise=True)
+        self.noise_weight -= NOISE_DECAY
+        return act_dim
 
     def reset(self):
-        self.noise.reset()
+        for agent in self.maddpg_agents:
+            agent.reset()
 
     def learn(self, experiences, gamma):
         """Update policy and value parameters using given batch of experience tuples.

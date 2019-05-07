@@ -110,7 +110,7 @@ class Agent():
         self.actor_local.train()
         if add_noise:
             action += self.noise.sample()*noise_weight
-            noise_weight -= NOISE_DECAY
+
         return np.clip(action, -1, 1)
 
 
