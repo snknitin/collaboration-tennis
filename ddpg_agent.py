@@ -28,7 +28,7 @@ class Agent(object):
     a concatentation of the states and actions from all agents.
     """
     
-    def __init__(self,id, state_size, action_size,random_seed,num_agents,maddpg):
+    def __init__(self,state_size, action_size,random_seed,num_agents,maddpg):
         """Initialize an Double Agent object.
         
         Params
