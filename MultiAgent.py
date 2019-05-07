@@ -30,10 +30,10 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 
-class MADDPG():
+class MADDPG(object):
     """Multi agent class  that contains the two DDPG agents and a  shared replay buffer."""
 
-    def __init__(self,state_size,action_size,num_agents,random_seed,hidden_sizes=HIDDEN_LAYERS):
+    def __init__(self,state_size,action_size,num_agents,random_seed):
         """
 
         :param agent_tuple: {"state_size", "action_size", "random_seed","num_agents", "hidden_sizes"}
@@ -51,6 +51,7 @@ class MADDPG():
         self.maddpg_agents = [Agent(state_size,action_size,random_seed,num_agents,self) for _ in range(self.num_agents)]
         self.noise_weight = NOISE_START
         self.t_step = 0
+        self.__name__ = 'MADDPG'
 
     def hard_copy_weights(self, target, source):
         """ copy weights from source to target network (part of initialization)"""

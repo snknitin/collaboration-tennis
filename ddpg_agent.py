@@ -22,7 +22,7 @@ DROPOUT =0.2
 NOISE_DECAY = 1e-6      # decay for for subrtaction of noise
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-class Agent():
+class Agent(object):
     """
     Each actor takes a state input for a single agent while the critic takes
     a concatentation of the states and actions from all agents.
@@ -45,6 +45,7 @@ class Agent():
         self.action_size = action_size
         self.seed = random.seed(random_seed)
         self.num_agents = num_agents
+        self.__name__ = 'DDPG'
 
         # Actor Network (w/ Target Network)
         self.actor_local = Actor(state_size, action_size, random_seed).to(device)
