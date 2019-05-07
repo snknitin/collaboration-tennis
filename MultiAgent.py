@@ -47,7 +47,7 @@ class MADDPG(object):
         self.agent_idx = np.arange(self.num_agents)
         # 2 agents
         # Actor Network (w/ Target Network)
-        self.replay_buffer = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
+        self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
         self.maddpg_agents = [Agent(state_size, action_size, random_seed, self) for _ in range(self.num_agents)]
         self.noise_weight = NOISE_START
         self.t_step = 0
@@ -65,7 +65,7 @@ class MADDPG(object):
             target_param.data.copy_(param.data)
 
 
-    def step2(self, states, actions, rewards, next_states, dones):
+    def step(self, states, actions, rewards, next_states, dones):
         """Save experience in replay memory, and use random sample from buffer to learn."""
 
         # Split into agent wise tuples for memory

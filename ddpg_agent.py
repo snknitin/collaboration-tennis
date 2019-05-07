@@ -63,7 +63,7 @@ class Agent(object):
         self.noise = OUNoise(action_size, random_seed)
 
         # Replay memory
-        self.memory = maddpg.replay_buffer
+        self.memory = maddpg.memory
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
     
@@ -86,20 +86,20 @@ class Agent(object):
                 self.learn(experiences, GAMMA)
 
 
-    def step2(self, states, actions, rewards, next_states, dones,num_update = 1):
-        """Save experience in replay memory, and use random sample from buffer to learn."""
-        # Save experience / reward
-        for state, action, reward, next_state, done in zip(states, actions, rewards, next_states, dones):
-            self.memory.add(state, action, reward, next_state, done)
-
-        # Learn every UPDATE_EVERY time steps.
-        self.t_step = (self.t_step + 1) % UPDATE_EVERY
-        if self.t_step == 0:
-            for i in range(num_update):
-                # Learn, if enough samples are available in memory
-                if len(self.memory) > BATCH_SIZE:
-                    experiences = self.memory.sample()
-                    self.learn(experiences, GAMMA)
+    # def step2(self, states, actions, rewards, next_states, dones,num_update = 1):
+    #     """Save experience in replay memory, and use random sample from buffer to learn."""
+    #     # Save experience / reward
+    #     for state, action, reward, next_state, done in zip(states, actions, rewards, next_states, dones):
+    #         self.memory.add(state, action, reward, next_state, done)
+    #
+    #     # Learn every UPDATE_EVERY time steps.
+    #     self.t_step = (self.t_step + 1) % UPDATE_EVERY
+    #     if self.t_step == 0:
+    #         for i in range(num_update):
+    #             # Learn, if enough samples are available in memory
+    #             if len(self.memory) > BATCH_SIZE:
+    #                 experiences = self.memory.sample()
+    #                 self.learn(experiences, GAMMA)
 
     def act(self, state,noise_weight=1.0, add_noise=True):
         """Returns actions for given state as per current policy."""
@@ -213,7 +213,7 @@ class ReplayBuffer:
         self.action_size = action_size
         self.memory = deque(maxlen=buffer_size)  # internal memory (deque)
         self.batch_size = batch_size
-        self.experience = namedtuple("Experience", field_names=["state","ext_state" "action","ext_action",
+        self.experience = namedtuple("Experience", field_names=["state","ext_state","action","ext_action",
                                                                 "reward", "next_state","ext_next_state", "done"])
         self.seed = random.seed(seed)
     
