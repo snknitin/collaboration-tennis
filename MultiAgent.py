@@ -95,7 +95,7 @@ class MADDPG(object):
         act_dim = np.zeros([self.num_agents, self.action_size])
         for player, agent in enumerate(self.maddpg_agents):
             act_dim[player,:] = agent.act(states[player],self.noise_weight,add_noise=True)
-        self.noise_weight -= NOISE_DECAY
+        #self.noise_weight -= NOISE_DECAY
         return act_dim
 
     def reset(self):

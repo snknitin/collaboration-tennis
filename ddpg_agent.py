@@ -10,14 +10,14 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 BUFFER_SIZE = int(1e6)  # replay buffer size
-BATCH_SIZE = 64        # minibatch size
+BATCH_SIZE = 256        # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
-LR_ACTOR = 2e-4         # learning rate of the actor 
-LR_CRITIC = 3e-3        # learning rate of the critic
-WEIGHT_DECAY = 0.0001        # L2 weight decay
+LR_ACTOR = 1e-4         # learning rate of the actor
+LR_CRITIC = 1e-3        # learning rate of the critic
+WEIGHT_DECAY = 0        # L2 weight decay
 HIDDEN_LAYERS=(512,256)
-UPDATE_EVERY = 2
+UPDATE_EVERY = 20
 DROPOUT =0.2
 NOISE_DECAY = 1e-6      # decay for for subrtaction of noise
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -109,7 +109,7 @@ class Agent(object):
             action = self.actor_local(state).cpu().data.numpy()
         self.actor_local.train()
         if add_noise:
-            action += self.noise.sample()*noise_weight
+            action += self.noise.sample()
 
         return np.clip(action, -1, 1)
 
