@@ -35,9 +35,11 @@ class Actor(nn.Module):
 
 
     def reset_parameters(self):
-        self.fc1.weight.data.xavier_uniform_(*hidden_init(self.fc1))
-        self.fc2.weight.data.xavier_uniform_(*hidden_init(self.fc2))
-        self.fc3.weight.data.xavier_uniform_(-3e-3, 3e-3)
+        nn.init.xavier_uniform_(self.fc1.weight)
+        nn.init.xavier_uniform_(self.fc2.weight)
+        # self.fc1.weight.data.xavier_uniform_(*hidden_init(self.fc1))
+        # self.fc2.weight.data.xavier_uniform_(*hidden_init(self.fc2))
+        self.fc3.weight.data.uniform_(-3e-3, 3e-3)
 
         self.fc1.bias.data.fill_(0.01)
         self.fc2.bias.data.fill_(0.01)
@@ -46,8 +48,12 @@ class Actor(nn.Module):
     def forward(self, state):
         """Build an actor (policy) network that maps states -> actions."""
         if state.dim() == 1:
+            print(state.shape)
             state = torch.unsqueeze(state, 0)
-        x = self.bn1(F.leaky_relu(self.fc1(state)))
+        print(state.shape)
+        x = self.fc1(state)
+        print(x.shape)
+        x = self.bn1(F.leaky_relu(x))
         x = self.bn2(F.leaky_relu(self.fc2(self.dropout(x))))
 
         return torch.tanh(self.fc3(self.dropout(x)))
@@ -83,10 +89,12 @@ class Critic(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        self.fcs1.weight.data.xavier_uniform_(*hidden_init(self.fcs1))
-        self.fc2.weight.data.xavier_uniform_(*hidden_init(self.fc2))
+        nn.init.xavier_uniform_(self.fcs1.weight)
+        nn.init.xavier_uniform_(self.fc2.weight)
+        # self.fcs1.weight.data.xavier_uniform_(*hidden_init(self.fcs1))
+        # self.fc2.weight.data.xavier_uniform_(*hidden_init(self.fc2))
         #self.fc3.weight.data.uniform_(*hidden_init(self.fc3))
-        self.fc3.weight.data.xavier_uniform_(-3e-3, 3e-3)
+        self.fc3.weight.data.uniform_(-3e-3, 3e-3)
 
         self.fcs1.bias.data.fill_(0.01)
         self.fc2.bias.data.fill_(0.01)
