@@ -12,7 +12,11 @@ def hidden_init(layer):
 class Actor(nn.Module):
     """Actor (Policy) Model."""
 
+<<<<<<< HEAD
     def __init__(self, state_size, action_size, seed, fc1_units=256,fc2_units = 128):
+=======
+    def __init__(self, state_size, action_size, seed, fc1_units=32,fc2_units = 16):
+>>>>>>> b20362880743edbbe05572fb2eceb3bbfd4b96f4
         """Initialize parameters and build model.
         Params
         ======
@@ -24,15 +28,15 @@ class Actor(nn.Module):
         """
         super(Actor, self).__init__()
         self.seed = torch.manual_seed(seed)
-        # self.fc1 = nn.Linear(state_size, fc1_units)
-        # self.bn1 = nn.BatchNorm1d(fc1_units)
-        # self.fc2 = nn.Linear(fc1_units, fc2_units)
-        # self.bn2 = nn.BatchNorm1d(fc2_units)
-        # self.out = nn.Linear(fc2_units, action_size)
+        self.dropout = nn.Dropout(p=0.2)
 
+<<<<<<< HEAD
         self.dropout = nn.Dropout(p=0.2)
 
         self.fc1 = nn.Linear(state_size*2 , fc1_units)
+=======
+        self.fc1 = nn.Linear(state_size, fc1_units)
+>>>>>>> b20362880743edbbe05572fb2eceb3bbfd4b96f4
         self.bn1 = nn.BatchNorm1d(fc1_units)
         self.fc2 = nn.Linear(fc1_units, fc2_units)
         self.bn2 = nn.BatchNorm1d(fc2_units)
@@ -53,6 +57,7 @@ class Actor(nn.Module):
     def forward(self, state):
         """Build an actor (policy) network that maps states -> actions."""
         if state.dim() == 1:
+<<<<<<< HEAD
             # print(state.shape)
             state = torch.unsqueeze(state, 0)
         # print(state.shape)
@@ -62,12 +67,27 @@ class Actor(nn.Module):
         x = self.bn2(F.relu(self.fc2(x)))
 
         return torch.tanh(self.fc3(x))
+=======
+            print(state.shape)
+            state = torch.unsqueeze(state, 0)
+        print(state.shape)
+        x = self.fc1(state)
+        print(x.shape)
+        x = self.bn1(F.leaky_relu(x))
+        x = self.bn2(F.leaky_relu(self.fc2(self.dropout(x))))
+
+        return torch.tanh(self.fc3(self.dropout(x)))
+>>>>>>> b20362880743edbbe05572fb2eceb3bbfd4b96f4
 
 
 class Critic(nn.Module):
     """Critic (Value) Model."""
 
+<<<<<<< HEAD
     def __init__(self, state_size, action_size, seed, fcs1_units=256, fc2_units=128,keep_prob=0.2):
+=======
+    def __init__(self, state_size, action_size,num_agents, seed, fcs1_units=32, fc2_units=16,keep_prob=0.2):
+>>>>>>> b20362880743edbbe05572fb2eceb3bbfd4b96f4
         """Initialize parameters and build model.
         Params
         ======
@@ -84,9 +104,14 @@ class Critic(nn.Module):
         # self.fc2 = nn.Linear(fcs1_units + action_size, fc2_units)
         # self.fc3 = nn.Linear(fc2_units, fc3_units)
         # self.out = nn.Linear(fc3_units, 1)
+<<<<<<< HEAD
         #self.dropout = nn.Dropout(p=keep_prob)
         self.dropout = nn.Dropout(p=keep_prob)
         self.fcs1 = nn.Linear((state_size)*2 +action_size, fcs1_units)
+=======
+        self.dropout = nn.Dropout(p=keep_prob)
+        self.fcs1 = nn.Linear((state_size + action_size) * num_agents, fcs1_units)
+>>>>>>> b20362880743edbbe05572fb2eceb3bbfd4b96f4
         self.bn1 = nn.BatchNorm1d(fcs1_units)
         self.fc2 = nn.Linear(fcs1_units, fc2_units)
         self.bn2 = nn.BatchNorm1d(fc2_units)
@@ -99,7 +124,11 @@ class Critic(nn.Module):
         nn.init.xavier_uniform_(self.fc2.weight)
         # self.fcs1.weight.data.xavier_uniform_(*hidden_init(self.fcs1))
         # self.fc2.weight.data.xavier_uniform_(*hidden_init(self.fc2))
+<<<<<<< HEAD
         # self.fc3.weight.data.uniform_(*hidden_init(self.fc3))
+=======
+        #self.fc3.weight.data.uniform_(*hidden_init(self.fc3))
+>>>>>>> b20362880743edbbe05572fb2eceb3bbfd4b96f4
         self.fc3.weight.data.uniform_(-3e-3, 3e-3)
 
         self.fcs1.bias.data.fill_(0.01)
@@ -112,7 +141,13 @@ class Critic(nn.Module):
         if state.dim() == 1:
             state = torch.unsqueeze(state, 0)
         xs = torch.cat((state, action.float()), dim=1)
+<<<<<<< HEAD
         x = self.bn1(F.relu(self.fcs1(xs)))
         x = self.bn2(F.relu(self.fc2(x)))
         return self.fc3(x)
+=======
+        x = self.bn1(F.leaky_relu(self.fcs1(xs)))
+        x = self.bn2(F.leaky_relu(self.fc2(self.dropout(x))))
+        return self.fc3(self.dropout(x))
+>>>>>>> b20362880743edbbe05572fb2eceb3bbfd4b96f4
 

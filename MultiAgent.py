@@ -14,7 +14,10 @@ import torch
 
 BUFFER_SIZE = int(1e6)  # replay buffer size
 BATCH_SIZE = 128        # minibatch size
-GAMMA = 0.99            # discount factor
+<MMA = 0.99            # discount factor
+=======
+GAMMA = 0.993            # discount factor
+>>>>>>> b20362880743edbbe05572fb2eceb3bbfd4b96f4
 TAU = 8e-3              # for soft update of target parameters
 LR_ACTOR = 1e-3         # learning rate of the actor
 LR_CRITIC = 1e-3        # learning rate of the critic
@@ -22,16 +25,32 @@ WEIGHT_DECAY = 0        # L2 weight decay
 UPDATE_EVERY = 10
 DROPOUT =0.2
 NUM_UPDATES = 5
+<<<<<<< HEAD
 
 NOISE_SIGMA = 0.2       # Ornstein-Uhlenbeck noise parameter, volatility
 NOISE_THETA = 0.15      # Ornstein-Uhlenbeck noise parameter, speed of mean reversion
 NOISE_START = 3.0       # initial value for epsilon in noise decay process in Agent.act()
 EPS_EP_END = 200        # episode to end the noise decay process
+=======
+MAX_T = 1000
+NOISE_START = 1.0       # epsilon decay for the noise process added to the actions
+NOISE_DECAY = 1e-6      # decay for for subrtaction of noise
+NOISE_SIGMA = 0.2       # sigma for Ornstein-Uhlenbeck noise
+
+OU_SIGMA = 0.2          # Ornstein-Uhlenbeck noise parameter, volatility
+OU_THETA = 0.15          # Ornstein-Uhlenbeck noise parameter, speed of mean reversion
+EPS_START = 5.0         # initial value for epsilon in noise decay process in Agent.act()
+EPS_EP_END = 300        # episode to end the noise decay process
+>>>>>>> b20362880743edbbe05572fb2eceb3bbfd4b96f4
 EPS_FINAL = 0           # final value for epsilon after decay
 
 
 PER_ALPHA = 0.6         # importance sampling exponent
+<<<<<<< HEAD
 PER_BETA = 0.4          # prioritization exponentNOISE_SIGMA = 0.2       # sigma for Ornstein-Uhlenbeck noise
+=======
+PER_BETA = 0.4          # prioritization exponent
+>>>>>>> b20362880743edbbe05572fb2eceb3bbfd4b96f4
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -51,8 +70,7 @@ class MADDPG(object):
         self.action_size = action_size
         self.state_size = state_size * self.num_agents # since 24 is just for one
         self.agent_idx = np.arange(self.num_agents)
-        # 2 agents
-        # Actor Network (w/ Target Network)
+
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
         self.maddpg_agents = [Agent(state_size, action_size, random_seed, self) for _ in range(self.num_agents)]
         #self.noise_weight = NOISE_START
@@ -64,6 +82,7 @@ class MADDPG(object):
 
     def __getitem__(self, key):
         return self.maddpg_agents[key]
+
 
     def hard_copy_weights(self, target, source):
         """ copy weights from source to target network (part of initialization)"""
@@ -81,7 +100,16 @@ class MADDPG(object):
         for i, exp in enumerate(experience):
             agent, state, action, reward, next_state, done = exp
 
+<<<<<<< HEAD
             agent.step(state, action, reward, next_state, done, i)
+=======
+            player = self.agent_idx[self.agent_idx != i] # Choose the opposite player
+            # Record the external player's states and actions separately for replay buffer
+            ext_state = states[player]
+            ext_action = actions[player]
+            ext_next_state = next_states[player]
+            agent.step(state, ext_state, action, ext_action, reward, next_state, ext_next_state, done)
+>>>>>>> b20362880743edbbe05572fb2eceb3bbfd4b96f4
 
     def act(self, states, add_noise=True):
         """Returns actions for given state as per current policy."""
@@ -122,6 +150,9 @@ class Agent(object):
         self.action_size = action_size
         self.seed = random.seed(random_seed)
         self.num_agents = maddpg.num_agents
+        self.alpha = PER_ALPHA
+        self.initial_beta = PER_BETA
+        self.max_t = MAX_T
         self.__name__ = 'DDPG'
         self.eps = NOISE_START
         self.eps_decay = 1 / (EPS_EP_END)  # set decay rate based on epsilon end target
@@ -152,7 +183,22 @@ class Agent(object):
         for target_param, param in zip(target.parameters(), source.parameters()):
             target_param.data.copy_(param.data)
 
+<<<<<<< HEAD
     def step(self, state, action, reward, next_state, done, agent_number):
+=======
+    def get_beta(self, t):
+        '''
+        Return the current exponent β based on its schedul. Linearly anneal β
+        from its initial value β0 to 1, at the end of learning.
+        :param t: integer. Current time step in the episode
+        :return current_beta: float. Current exponent beta
+        '''
+        f_frac = min(float(t) / self.max_t, 1.0)
+        current_beta = self.initial_beta + f_frac * (1. - self.initial_beta)
+        return current_beta
+
+    def step(self, state, ext_state, action, ext_action, reward, next_state, ext_next_state, done):
+>>>>>>> b20362880743edbbe05572fb2eceb3bbfd4b96f4
         """Save experience in replay memory, and use random sample from buffer to learn."""
         # Save experience / reward
         self.t_step += 1
@@ -171,20 +217,7 @@ class Agent(object):
         self.eps = max(self.eps, EPS_FINAL)
         self.noise.reset()
 
-    # def step2(self, states, actions, rewards, next_states, dones,num_update = 1):
-    #     """Save experience in replay memory, and use random sample from buffer to learn."""
-    #     # Save experience / reward
-    #     for state, action, reward, next_state, done in zip(states, actions, rewards, next_states, dones):
-    #         self.memory.add(state, action, reward, next_state, done)
-    #
-    #     # Learn every UPDATE_EVERY time steps.
-    #     self.t_step = (self.t_step + 1) % UPDATE_EVERY
-    #     if self.t_step == 0:
-    #         for i in range(num_update):
-    #             # Learn, if enough samples are available in memory
-    #             if len(self.memory) > BATCH_SIZE:
-    #                 experiences = self.memory.sample()
-    #                 self.learn(experiences, GAMMA)
+
 
     def act(self, states, add_noise=True):
         """Returns actions for given state as per current policy."""
@@ -334,6 +367,7 @@ class OUNoise:
         """Initialize parameters and noise process."""
         self.mu = mu * np.ones(size)
         self.theta = theta
+        self.scale = 0.1
         self.sigma = sigma
         self.size = size
         self.seed = random.seed(seed)
@@ -348,8 +382,140 @@ class OUNoise:
         x = self.state
         dx = self.theta * (self.mu - x) + self.sigma * np.random.standard_normal(self.size)
         self.state = x + dx
-        return self.state
+        return torch.tensor(self.state * self.scale).float()
 
+
+
+def weighted_mse_loss(input, target, weights):
+    '''
+    Return the weighted mse loss to be used by Prioritized experience replay
+    :param input: torch.Tensor.
+    :param target: torch.Tensor.
+    :param weights: torch.Tensor.
+    :return loss:  torch.Tensor.
+    '''
+    # source: http://
+    # forums.fast.ai/t/how-to-make-a-custom-loss-function-pytorch/9059/20
+    out = (input-target)**2
+    out = out * weights.expand_as(out)
+    loss = out.mean(0)  # or sum over whatever dimensions
+    return loss
+
+
+
+class PrioritizedReplayBuffer(object):
+    '''Fixed-size buffer to store experience tuples.'''
+
+    def __init__(self, action_size, buffer_size, batch_size, seed, alpha):
+        '''Initialize a ReplayBuffer object.
+        :param action_size: int. dimension of each action
+        :param buffer_size: int: maximum size of buffer
+        :param batch_size: int: size of each training batch
+        :param seed: int: random seed
+        :param alpha: float: 0~1 indicating how much prioritization is used
+        '''
+        self.action_size = action_size
+        self.memory = deque(maxlen=buffer_size)
+        self.batch_size = batch_size
+        self.experience = namedtuple("Experience", field_names=["state", "ext_state", "action", "ext_action",
+                                                                "reward", "next_state", "ext_next_state", "done"])
+        self.seed = random.seed(seed)
+        # specifics
+        self.alpha = max(0., alpha)  # alpha should be >= 0
+        self.priorities = deque(maxlen=buffer_size)
+        self._buffer_size = buffer_size
+        self.cum_priorities = 0.
+        self.eps = 1e-6
+        self._indexes = []
+        self.max_priority = 1.**self.alpha
+
+    def add(self,  state, ext_state, action, ext_action, reward, next_state, ext_next_state, done):
+        '''Add a new experience to memory.'''
+        e = self.experience( state, ext_state, action, ext_action, reward, next_state, ext_next_state, done)
+        self.memory.append(e)
+        # exclude the value that will be discareded
+        if len(self.priorities) >= self._buffer_size:
+            self.cum_priorities -= self.priorities[0]
+        # include the max priority possible initialy
+        self.priorities.append(self.max_priority)  # already use alpha
+        # accumulate the priorities abs(td_error)
+        self.cum_priorities += self.priorities[-1]
+
+    def sample(self):
+        '''
+        Sample a batch of experiences from memory according to importance-
+        sampling weights
+        :return. tuple[torch.Tensor]. Sample of past experiences
+        '''
+        i_len = len(self.memory)
+        na_probs = None
+        if self.cum_priorities:
+            na_probs = np.array(self.priorities)/self.cum_priorities
+        l_index = np.random.choice(i_len,
+                                   size=min(i_len, self.batch_size),
+                                   p=na_probs)
+        self._indexes = l_index
+
+        experiences = [self.memory[ii] for ii in l_index]
+
+        states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
+        ext_states = torch.from_numpy(np.vstack([e.ext_state for e in experiences if e is not None])).float().to(device)
+        actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).float().to(device)
+        ext_actions = torch.from_numpy(np.vstack([e.ext_action for e in experiences if e is not None])).float().to(
+            device)
+        rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
+        next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(
+            device)
+        ext_next_states = torch.from_numpy(
+            np.vstack([e.ext_next_state for e in experiences if e is not None])).float().to(
+            device)
+        dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(
+            device)
+
+        return (states, ext_states, actions, ext_actions, rewards, next_states, ext_next_states, dones)
+
+    def _calculate_is_w(self, f_priority, current_beta, max_weight, i_n):
+        #  wi= ((N x P(i)) ^ -β)/max(wi)
+        f_wi = (i_n * f_priority/self.cum_priorities)
+        return (f_wi ** -current_beta)/max_weight
+
+    def get_is_weights(self, current_beta):
+        '''
+        Return the importance sampling (IS) weights of the current sample based
+        on the beta passed
+        :param current_beta: float. fully compensates for the non-uniform
+            probabilities P(i) if β = 1
+        '''
+        # calculate P(i) to what metters
+        i_n = len(self.memory)
+        max_weight = (i_n * min(self.priorities) / self.cum_priorities)
+        max_weight = max_weight ** -current_beta
+
+        this_weights = [self._calculate_is_w(self.priorities[ii],
+                                             current_beta,
+                                             max_weight,
+                                             i_n)
+                        for ii in self._indexes]
+        return torch.tensor(this_weights,device=device,dtype=torch.float).reshape(-1, 1)
+
+    def update_priorities(self, td_errors):
+        '''
+        Update priorities of sampled transitions
+        inspiration: https://bit.ly/2PdNwU9
+        :param td_errors: tuple of torch.tensors. TD-Errors of last samples
+        '''
+        for i, f_tderr in zip(self._indexes, td_errors):
+            f_tderr = float(f_tderr)
+            self.cum_priorities -= self.priorities[i]
+            # transition priority: pi^α = (|δi| + ε)^α
+            self.priorities[i] = ((abs(f_tderr) + self.eps) ** self.alpha)
+            self.cum_priorities += self.priorities[i]
+        self.max_priority = max(self.priorities)
+        self._indexes = []
+
+    def __len__(self):
+        '''Return the current size of internal memory.'''
+        return len(self.memory)
 
 # class ModReplayBuffer:
 #     """Fixed-size buffer to store experience tuples."""
